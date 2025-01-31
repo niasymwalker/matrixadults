@@ -18,6 +18,7 @@ library(survminer)
 library(utile.visuals)
 library(bdscale)
 library(scales)
+library(userfriendlyscience)
 
 ####Figure 1####
 d4<-read_csv("data/controller04 SP and PV Time Series-data-2023-04-27 14_54_26.csv")%>%
@@ -118,13 +119,13 @@ resistrecover_data <- read_excel("data/resist_recover_data.xlsx", na="NA") %>% c
   mutate(genet=as.character(genet)) %>%
   distinct()
 
-M1A_group <- data.frame(M1A_group=c(A1_c4$group,A2_c5$group,A3_c14$group,A4_c15$group))
-M1A_time <- data.frame(M1A_time=c(A1_c4$time,A2_c5$time,A3_c14$time,A4_c15$time))
-M1A_temp <- data.frame(M1A_temp=c(A1_c4$temp,A2_c5$temp,A3_c14$temp,A4_c15$temp))
-M1A_dataset <- data.frame(M1A_group,M1A_time,M1A_temp)
-M1A_dataset$M1A_group <- factor(M1A_dataset$M1A_group, levels = c("Heated", "Ambient"))
+M1C_group <- data.frame(M1A_group=c(A1_c4$group,A2_c5$group,A3_c14$group,A4_c15$group))
+M1C_time <- data.frame(M1A_time=c(A1_c4$time,A2_c5$time,A3_c14$time,A4_c15$time))
+M1C_temp <- data.frame(M1A_temp=c(A1_c4$temp,A2_c5$temp,A3_c14$temp,A4_c15$temp))
+M1C_dataset <- data.frame(M1A_group,M1A_time,M1A_temp)
+M1C_dataset$M1A_group <- factor(M1A_dataset$M1A_group, levels = c("Heated", "Ambient"))
 
-M1A <- ggplot() +
+M1C <- ggplot() +
   geom_line(data=A1_c4, aes(x=time,y=temp,color=group), alpha=0.6) +
   geom_line(data=A2_c5, aes(x=time,y=temp,color=group)) +
   geom_line(data=A3_c14, aes(x=time,y=temp), color=c("firebrick1"), alpha=0.6) +
@@ -133,7 +134,7 @@ M1A <- ggplot() +
   scale_y_continuous(breaks = c(22,24,26,28,30,32),
                      labels = c(22,24,26,28,30,32)) +
   scale_x_datetime(date_labels = "%m/%d", date_breaks = "2 days") +
-  labs(x="Heat Tolerance Profile Dates", y=expression("Temperature "(degree*C)~" ")) +
+  labs(x="Thermal Tolerance Profile Dates", y=expression("Temperature "(degree*C)~" ")) +
   theme_bw() + theme(axis.title = element_text(size=10), legend.title = element_blank(),
                      legend.background = element_blank(), legend.position = c(0.5,0.9),
                      legend.justification = c("left", "top"),
@@ -223,15 +224,11 @@ M1B <- ggplot(M1B_dataset, aes(x=genet,y=days,fill=clade,shape=groups)) +
                      legend.title = element_blank(),
                      legend.key.size = unit(2,"mm"),
                      legend.box="horizontal",
-                     legend.background = element_blank(), legend.position = c(0.01,1.05),
+                     legend.background = element_blank(), legend.position = c(0.01,1.0),
                      legend.justification = c("left", "top"),
                      legend.box.just = "left",
                      legend.margin = margin(1, 1, 1, 1),
                      legend.text = element_text(hjust = 0))
-
-quartz(w=4,h=3.5)
-plot_grid(M1A,M1B, rel_heights=c(1.1,1), nrow=2, labels=c("A","B"), axis="tb", align="h",label_size=12)
-quartz.save("output/Fig1_final.pdf", type="pdf")
 
 profiles2 <- profiles %>%
   mutate(genet = as.factor(genet)) %>%
@@ -325,7 +322,7 @@ profiles$type_profile = factor(profiles$type_profile,levels=c("C31-C17d-C31.1-C2
                                                               "D1-D4-D1ab-D6-D10"))
 
 
-M1C <- ggplot(profiles2, aes(x=reorder(genet,-Cladocopium_prop), y=type_profile_prop))+
+M1A <- ggplot(profiles2, aes(x=reorder(genet,-Cladocopium_prop), y=type_profile_prop))+
   geom_col(aes(fill = type_profile), colour="grey", size=0.005)+
   labs(x="Genet", y="Symbiodiniaceae Proportion")+
   theme_bw(base_size = 12)+
@@ -339,8 +336,8 @@ M1C <- ggplot(profiles2, aes(x=reorder(genet,-Cladocopium_prop), y=type_profile_
 #, legend.position = "right", title.theme = element_text(angle = 90)
 
 quartz(w=7.2,h=5)
-M1AB <- plot_grid(M1B,M1A,nrow=1, labels=c("B","C"),rel_widths = c(1,0.8), axis="tb",align="hv")
-plot_grid(M1C,NULL,M1AB, nrow=3, labels=c("A","",""), rel_heights = c(1.1,0.01,1.05), axis="tb", align="h",label_size=12)
+M1BC <- plot_grid(M1B,M1C,nrow=1, labels=c("B","C"),rel_widths = c(1,0.8), axis="tb",align="hv")
+plot_grid(M1A,NULL,M1BC, nrow=3, labels=c("A","",""), rel_heights = c(1.1,0.01,1.05), axis="tb", align="h",label_size=12)
 quartz.save("output/Fig1_final.pdf", type="pdf")
 
 #####Figure 2#####
@@ -397,6 +394,8 @@ for(i in list$genet){
 min(ED$ed30)
 max(ED$ed30)
 mean(ED$ed30)
+sd(ED$ed30)
+
 
 #JUST CONTROLS
 resistrecover_pam_control <- pam_data %>%
@@ -479,7 +478,7 @@ M2A <- ggplot() +
   geom_smooth(data=out,aes(x=cumulative,y=predicted),color="firebrick", se=FALSE, linewidth=2)+
   geom_smooth(data=resistrecover_pam_control,aes(x=cumulative,y=relative_pam),color="dodgerblue", se=FALSE, linewidth=2)+
   geom_hline(yintercept=.7, linetype="dotted") +
-  scale_x_continuous(sec.axis=sec_axis(~.*1.8181818182,name="Heat Tolerance Assay Days",breaks=seq(0,14,2))) +
+  scale_x_continuous(sec.axis=sec_axis(~.*1.8181818182,name="Thermal Tolerance Assay Days",breaks=seq(0,14,2))) +
   labs(x = "Degree Heating Weeks", y = expression(" \nRelative Fv/Fm")) + 
   theme_bw() + theme(legend.position="none", axis.title = element_text(size=10),axis.text = element_text(),axis.title.x.bottom = element_text(colour = "firebrick"),axis.title.x.top = element_text(colour = "dodgerblue"))
 
@@ -499,12 +498,19 @@ symbiont_clade_metashape <- profiles_clades %>%
   left_join(.,resistrecover_ED,by="genet",relationship="many-to-many") %>%
   select(treatment,genet,percentchange_bw,percentchange_sa,percentchange_volume,percentchange_density,ed30,Cladocopium_prop,clade)
 
-symbiont_growth <- symbiont_clade_metashape %>%
-  select(genet,percentchange_sa,percentchange_bw,percentchange_volume,percentchange_density,clade) %>%
+symbiont_growth_sa <- symbiont_clade_metashape %>%
+  left_join(.,resistrecover_ED_sa) %>%
+  select(genet,percentchange_avgsa2,clade) %>%
   distinct() %>%
   na.omit()
+symbiont_growth_sa$clade <- factor(symbiont_growth_sa$clade, levels=c("C", "mixed", "D"))
 
-symbiont_growth$clade <- factor(symbiont_growth$clade, levels=c("C", "mixed", "D"))
+symbiont_growth_bw <- symbiont_clade_metashape %>%
+  left_join(.,resistrecover_ED_bw, relationship = "many-to-many") %>%
+  select(genet,percentchange_avgbw2,clade) %>%
+  distinct() %>%
+  na.omit()
+symbiont_growth_bw$clade <- factor(symbiont_growth_bw$clade, levels=c("C", "mixed", "D"))
 
 #Plot ED, metashape data based on cladocopium proportion#
 ##clade vs. ED
@@ -517,20 +523,32 @@ symbiont_ED$clade <- factor(symbiont_ED$clade, levels=c("C", "mixed", "D"))
 
 #write.csv(symbiont_ED,"symbiont_ED.csv")
 
-ed30_clade_model <- aov(lm(ed30 ~ clade, data = symbiont_ED))
-TukeyHSD(ed30_clade_model)
+#ed30_clade_model <- aov(lm(ed30 ~ clade, data = symbiont_ED))
+#TukeyHSD(ed30_clade_model)
+leveneTest(ed30 ~ clade, data = symbiont_ED)
+ed30_clade_model <- oneway.test(ed30 ~ clade, data = symbiont_ED,var.equal = FALSE)
+ed30_clade_model
+#^p=0.001172
+games_howell<- posthocTGH(y=symbiont_ED$ed30,x=symbiont_ED$clade,method="games-howell")
 
 #pval_CD2 <- c("**")
 #pval_CM2 <- c("*")
 #pval_MD2 <- c("")
-pval_CD2 <- c("0.028")
-pval_CM2 <- c("0.613")
-pval_MD2 <- c("0.521")
+pval_CD2 <- c("< 0.01")
+pval_CM2 <- c("0.16")
+pval_MD2 <- c("0.23")
+
+mean(symbiont_ED$ed30[symbiont_ED$clade == "D"], na.rm = TRUE)
+sd(symbiont_ED$ed30[symbiont_ED$clade == "D"], na.rm = TRUE)
+mean(symbiont_ED$ed30[symbiont_ED$clade == "C"], na.rm = TRUE)
+sd(symbiont_ED$ed30[symbiont_ED$clade == "C"], na.rm = TRUE)
+mean(symbiont_ED$ed30[symbiont_ED$clade == "mixed"], na.rm = TRUE)
+sd(symbiont_ED$ed30[symbiont_ED$clade == "mixed"], na.rm = TRUE)
 
 M2B <- ggplot(symbiont_ED,aes(x=clade,y=ed30,color=clade)) +
   geom_boxplot() +
   geom_point() +
-  labs(x = "Dominant Symbiont Type", y = expression("Tolerance (ED30)")) +
+  labs(x = "Dominant Symbiont Spp.", y = expression("Tolerance (ED30)")) +
   annotate("text", x=1.5, y=5.5, label=pval_CM2, size=3) +
   annotate("text", x=2, y=6.3, label=pval_CD2, size=3) +
   annotate("text", x=2.5, y=7, label=pval_MD2, size=3) +
@@ -539,7 +557,7 @@ M2B <- ggplot(symbiont_ED,aes(x=clade,y=ed30,color=clade)) +
   annotate("segment", x = 2.1, xend = 2.9, y= 6.7, yend=6.7) +
   scale_x_discrete(labels=c('C', 'Mixed', 'D')) +
   scale_color_manual(values = c("darkorange", "black", "blue")) +
-  theme_bw() + theme(axis.title = element_text(size=10),legend.position="none",axis.title.x=element_blank()) 
+  theme_bw() + theme(axis.title = element_text(size=10),legend.position="none") 
 
 ##Fisher's exact test for mortality Heat Resistance
 sym_analysis <- matrix(c(0,28,0,18,25,111),ncol=2,nrow=3,dimnames=list(c("C spp.", "Mixed", "D spp."),c("Dead","Alive")),byrow=TRUE)
@@ -564,12 +582,12 @@ M2C <- ggplot(tmp, aes(x=Symbio, y=Ramets, fill=Mortality)) +
   scale_fill_manual(values=c("orange4","seagreen4")) +
   annotate("text", x=1.5, y=50, label=pval_CM, size=3) +
   annotate("text", x=1.8, y=80, label=pval_CD, size=3) +
-  annotate("text", x=2.2, y=110, label=pval_MD, size=3) +
+  annotate("text", x=2.15, y=110, label=pval_MD, size=3) +
   annotate("segment", x = 1.1, xend = 1.9, y= 40, yend=40) +
   annotate("segment", x = 1.1, xend = 2.5, y= 70, yend=70) +
   annotate("segment", x = 1.9, xend = 2.5, y= 100, yend=100) +
   scale_x_discrete(labels=c('C', 'Mixed', 'D')) +
-  labs(x = "", y = "Ramet #") + 
+  labs(x = "Dominant Symbiont Spp.", y = "Ramet #") + 
   theme_bw() + theme(axis.title = element_text(size=10),
                      legend.title = element_blank(),legend.key.size = unit(2,"mm"),
                      legend.background = element_blank(), legend.position = c(.01, .99),
@@ -578,7 +596,7 @@ M2C <- ggplot(tmp, aes(x=Symbio, y=Ramets, fill=Mortality)) +
                      legend.margin = margin(6, 6, 6, 6))
 
 quartz(w=7.2,h=3)
-plot_grid(M2A,M2B,M2C, rel_widths = c(1.5,.9,.9), ncol=3, labels=c("A","B","C"), align="hv",axis="tb", label_size=12)
+plot_grid(M2A,M2B,M2C, rel_widths = c(1.5,1,1), ncol=3, labels=c("A","B","C"), align="hv",axis="tb", label_size=12)
 quartz.save("./output/Fig2_final.pdf", type="pdf")
 
 #####Figure 3#####
@@ -714,7 +732,7 @@ M3C <- ggplot(mortdays_ED, aes(x = ed30, y = surv_r80)) +
   stat_smooth(aes(x = ed30), method = "glm", color = "black",  
               method.args = list(family = "binomial"), 
               se = FALSE) +
-  labs(x = "Heat Tolerance",
+  labs(x = "Thermal Tolerance",
        y = "Survival") + 
   annotate("text", x=c(6.1),y=c(0.1), label=c("p = 0.0012"),size=2.8) +
   annotate("text", x=c(3.5),y=c(0.85), label=c("Recovery Day 80"), size=2.8) +
@@ -730,10 +748,11 @@ quartz.save("./output/Fig3_final.pdf", type="pdf")
 #transform data and normality test
 resistrecover_ED_sa <- resistrecover_ED %>%
   group_by(genet) %>%
-  mutate(percentchange_avgsa = mean(percentchange_sa))
+  mutate(percentchange_avgsa = mean(percentchange_sa)) %>%
+  select(genet,percentchange_avgsa,ed30)
 
 resistrecover_ED_sa$percentchange_avgsa2 <- log10(resistrecover_ED_sa$percentchange_avgsa)
-resistrecover_ED_sa$percentchange_sa2 <- log10(resistrecover_ED_sa$percentchange_sa)
+#resistrecover_ED_sa$percentchange_sa2 <- log10(resistrecover_ED_sa$percentchange_sa)
 resistrecover_ED_sa$ed30_2 <- resistrecover_ED_sa$ed30^2
 
 resistrecover_ED_sa <- resistrecover_ED_sa %>%
@@ -746,36 +765,39 @@ ggdensity(resistrecover_ED_sa$percentchange_avgsa2, main="Density plot of sa", x
 ggqqplot(resistrecover_ED_sa$percentchange_avgsa2)
 skewness(resistrecover_ED_sa$percentchange_avgsa2, na.rm=TRUE)
 
-#log tranformation, added 5 constant
+#log tranformation
 sa_lm <- lm(percentchange_avgsa2 ~ ed30, data=resistrecover_ED_sa) 
-sa_quad <- lm(percentchange_avgsa2 ~ ed30 + ed30_2, data=resistrecover_ED_sa)
+summary(sa_lm)
+#sa_quad <- lm(percentchange_avgsa2 ~ ed30 + ed30_2, data=resistrecover_ED_sa)
+#summary(sa_quad)
 #linear and quadratic fit sig
 
 M4A <- ggplot(resistrecover_ED_sa,aes(x=ed30,y=percentchange_avgsa2)) +
   geom_point() +
   geom_smooth(method="lm") +
-  geom_smooth(method="lm",formula = y ~ x + I(x^2),color="red") +
-  labs(x = "Heat Tolerance", y = expression(log*"%"*Delta~Surface~Area)) + 
-  annotate("text", x=c(5.35,5.2),y=c(-0.07,.07), label=c("linear p = 0.0039","quad p = 2.27e-05"),size=2.8) +
+  labs(x = "Thermal Tolerance", y = expression(log*"%"*Delta~Surface~Area)) + 
+  annotate("text", x=c(5.35),y=c(-0.07), label=c("p = 0.0025\n")) +
   theme_bw() + theme(legend.position="none",axis.title.x = element_blank(),axis.title.y = element_text(size = 9)) 
 
 #SA vs. Symbiont Clade analysis
-M4Baov <- aov(lm(percentchange_sa ~ clade, data = symbiont_growth))
+M4Baov <- aov(lm(percentchange_avgsa2 ~ clade, data = symbiont_growth_sa))
+leveneTest(percentchange_avgsa2 ~ clade, data = symbiont_growth_sa)
+summary(M4Baov)
 TukeyHSD(M4Baov)
 #all are not significant
-#CD: 0.232
-#CM: 0.324
-#MD: 0.927
+#CD: 0.556
+#CM: 0.880
+#MD: 0.954
 
 pval_CD3 <- c("")
 pval_CM3 <- c("")
 pval_MD3 <- c("")
 
-M4B <- ggplot(symbiont_growth,aes(x=clade,y=percentchange_sa,color=clade)) +
+M4B <- ggplot(symbiont_growth_sa,aes(x=clade,y=percentchange_avgsa2,color=clade)) +
   geom_boxplot() +
   geom_point() +
-  labs(x = "Dominant Symbiont spp.", y = expression("%"~Delta~Surface~Area)) + 
-  annotate("text", x=2, y=30, label=c("all n.s.")) +
+  labs(x = "Dominant Symbiont spp.", y = expression(log~"%"~Delta~Surface~Area)) + 
+  annotate("text", x=2, y=0.4, label=c("all n.s.")) +
   #annotate("text", x=1.5, y=22, label=pval_CM3) +
   #annotate("text", x=2, y=27, label=pval_CD3) +
   #annotate("text", x=2.5, y=32, label=pval_MD3) +
@@ -789,10 +811,12 @@ M4B <- ggplot(symbiont_growth,aes(x=clade,y=percentchange_sa,color=clade)) +
 ##Buoyant Weight vs. ED analysis
 resistrecover_ED_bw <- resistrecover_ED %>%
   group_by(genet) %>%
-  mutate(percentchange_avgbw = mean(percentchange_bw))
+  mutate(percentchange_avgbw = mean(percentchange_bw)) %>%
+  select(genet,percentchange_avgbw,ed30) %>%
+  distinct()
 
 resistrecover_ED_bw$percentchange_avgbw2 <- log(resistrecover_ED_bw$percentchange_avgbw)
-resistrecover_ED_bw$percentchange_bw2 <- log(resistrecover_ED_bw$percentchange_bw)
+#resistrecover_ED_bw$percentchange_bw2 <- log(resistrecover_ED_bw$percentchange_bw)
 resistrecover_ED_bw$ed30_2 <- resistrecover_ED_bw$ed30^2
 
 ggplot(resistrecover_ED_bw, aes(x=percentchange_avgbw2)) +
@@ -805,36 +829,41 @@ skewness(resistrecover_ED_bw$percentchange_avgbw2, na.rm=TRUE)
 
 #log tranformation
 bw_lm <- lm(percentchange_avgbw2 ~ ed30, data=resistrecover_ED_bw)
-bw_quad <- lm(percentchange_avgbw2 ~ ed30 + ed30_2, data=resistrecover_ED_bw)
+summary(bw_lm)
+#bw_quad <- lm(percentchange_avgbw2 ~ ed30 + ed30_2, data=resistrecover_ED_bw)
+#summary(bw_quad)
 #quadratic fit yields p-value 0.01494 but low R2 = 0.02914
 
 M4C <- ggplot(resistrecover_ED_bw,aes(x=ed30,y=percentchange_avgbw2)) +
   geom_point() +
   geom_smooth(method="lm") +
-  geom_smooth(method="lm",formula = y ~ x + I(x^2),color="red") +
-  labs(x = "Heat Tolerance", y = expression(log*"%"*Delta~"Buoyant Weight")) + 
-  annotate("text", x=c(5.65,5.3),y=c(2.15,2.3), label=c("linear p = 0.88","quad p = 0.00028"),size=2.8) +
+  labs(x = "Thermal Tolerance", y = expression(log*"%"*Delta~"Buoyant Weight")) + 
+  annotate("text", x=c(5.65),y=c(2.15), label=c("p = 0.93\n")) +
   theme_bw() + theme(legend.position="none",axis.title = element_text(size = 9)) 
 
 #BW vs. Symbiont clade analysis
 ##clade vs. BW
-M4Daov <- aov(lm(percentchange_bw ~ clade, data = symbiont_growth))
+M4Daov <- aov(lm(percentchange_avgbw2 ~ clade, data = symbiont_growth_bw))
+leveneTest(percentchange_avgbw2 ~ clade, data = symbiont_growth_bw)
+summary(M4Daov)
 TukeyHSD(M4Daov)
 #all are not significant
+library(car)
+vif(M4Daov)
 
-#pval_CD4 <- c("p = 0.841")
-#pval_CM4 <- c("p = 0.621")
-#pval_MD4 <- c("p = 0.792")
+#pval_CD4 <- c("p = 0.923")
+#pval_CM4 <- c("p = 0.916")
+#pval_MD4 <- c("p = 0.986")
 
 pval_CD4 <- c("")
 pval_CM4 <- c("")
 pval_MD4 <- c("")
 
-M4D <- ggplot(symbiont_growth,aes(x=clade,y=percentchange_bw,color=clade)) +
+M4D <- ggplot(symbiont_growth_bw,aes(x=clade,y=percentchange_avgbw2,color=clade)) +
   geom_boxplot() +
   geom_point() +
-  labs(x = "Dominant Symbiont spp.", y = expression("%"~Delta~Buoyant~Weight)) + 
-  annotate("text", x=2, y=40, label=c("all n.s.")) +
+  labs(x = "Dominant Symbiont spp.", y = expression(log~"%"~Delta~Buoyant~Weight)) + 
+  annotate("text", x=2, y=3.5, label=c("all n.s.")) +
   #annotate("text", x=1.5, y=42, label=pval_CM4) +
   #annotate("text", x=2, y=47, label=pval_CD4) +
   #annotate("text", x=2.5, y=52, label=pval_MD4) +
@@ -846,11 +875,10 @@ M4D <- ggplot(symbiont_growth,aes(x=clade,y=percentchange_bw,color=clade)) +
   theme_bw() + theme(legend.position="none",axis.title = element_text(size = 9)) 
 
 quartz(w=4,h=4)
-plot_grid(M4A,M4B,M4C,M4D, ncol=2, labels = c("A","B","C","D"), align="hv", axis="tb", label_size=12, rel_heights = c(1,1),label_y=(1.01))
+plot_grid(M4A,M4B,M4C,M4D, ncol=2, labels = c("A","B","C","D"), align="hv", axis="tb", label_size=12, rel_heights = c(1,1),label_y=(1.02))
 quartz.save("./output/Fig4_final.pdf", type="pdf")
 
 
-#####Supplementary Figures#####
 #####Supp Figure 1#####
 A1_growth_c4<-read_csv("./data/controller04_growth.csv")%>%
   separate(PV,into=c("temp","trash"),sep=" ")%>%select(-trash) %>%
@@ -872,6 +900,9 @@ A1_growth_c4_avg <- A1_growth_c4 %>%
   add_column(group= c("Growth Period")) %>%
   distinct()
 
+median(A1_growth_c4_avg$temp)
+
+
 A2_growth_c6<-read_csv("./data/controller06_growth.csv")%>%
   separate(PV,into=c("temp","trash"),sep=" ")%>%select(-trash) %>%
   select(Time,temp) %>%
@@ -892,6 +923,9 @@ A2_growth_c6_avg <- A2_growth_c6 %>%
   add_column(group= c("Growth Period")) %>%
   distinct()
 
+median(A2_growth_c6_avg$temp)
+
+
 A3_growth_c10<-read_csv("./data/controller10_growth.csv")%>%
   separate(PV,into=c("temp","trash"),sep=" ")%>%select(-trash) %>%
   select(Time,temp) %>%
@@ -911,6 +945,8 @@ A3_growth_c10_avg <- A3_growth_c10 %>%
   select(time,temp) %>%
   add_column(group= c("Growth Period")) %>%
   distinct()
+
+median(A3_growth_c10_avg$temp)
 
 A1_rec_c8<-read_csv("./data/controller08_rec.csv")%>%
   separate(PV,into=c("temp","trash"),sep=" ")%>%select(-trash) %>%
@@ -1056,12 +1092,15 @@ quartz.save("./output/FigS1.pdf", type="pdf")
 #####Supp Figure 2#####
 #Adult fragment growth information
 #Fig. S2A: percent change surface area of adult ramets
-S2A_main <- ggplot(resistrecover_ED_sa, aes(x=percentchange_avgsa)) +
+resistrecover_ED_saS2 <- resistrecover_ED_sa %>%
+  select(genet,percentchange_avgsa,percentchange_avgsa2) %>%
+  distinct()
+S2A_main <- ggplot(resistrecover_ED_saS2, aes(x=percentchange_avgsa)) +
   geom_histogram() +
-  labs(x = Delta~"Percent Surface Area", y = expression("Adult Ramet Count")) + 
+  labs(x = Delta~"Percent Surface Area", y = expression("# of Genets")) + 
   theme_bw() + theme(legend.position="none") 
 
-S2A_inset <- ggplot(resistrecover_ED_sa, aes(x=percentchange_avgsa2)) +
+S2A_inset <- ggplot(resistrecover_ED_saS2, aes(x=percentchange_avgsa2)) +
   geom_histogram() +
   labs(x = "SA log", y=expression("")) + 
   theme_bw() + theme(legend.position="none") 
@@ -1071,24 +1110,27 @@ S2A <- ggdraw() +
   draw_plot(S2A_inset, x=.55,y=.62,width=.4,height=.35)
 
 #Fig. S2B: percent change surface area of adult genets
-S2B <- ggplot(resistrecover_ED_sa, aes(x=reorder(genet,percentchange_sa2),y=percentchange_sa2)) +
+S2B <- ggplot(resistrecover_ED_sa, aes(x=reorder(genet,percentchange_avgsa2),y=percentchange_avgsa2)) +
   geom_line() +
-  stat_summary(geom="point",fun="mean",size=2) +
+  geom_point() +
   labs(x = "Genet", y=expression(log*"%"*Delta~Surface~Area)) + 
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  annotate("text", x=c(50),y=c(-1), label=c("p < 0.001"),size=3) +
   theme_bw() + theme(axis.text.x=element_text(angle=90,vjust=1,hjust=1),legend.position="none") 
 
 adult_sa_aov <- aov(percentchange_avgsa2~genet, data=resistrecover_ED_sa)
 summary(adult_sa_aov)
 
-#Fig. S2C: percent change buoyant weight ramets
-
-S2C_main <- ggplot(resistrecover_ED_bw, aes(x=percentchange_avgbw)) +
+#Fig. S2C: percent change buoyant weight genets
+resistrecover_ED_bwS2 <- resistrecover_ED_bw %>%
+  select(genet,percentchange_avgbw,percentchange_avgbw2) %>%
+  distinct()
+S2C_main <- ggplot(resistrecover_ED_bwS2, aes(x=percentchange_avgbw)) +
   geom_histogram() +
-  labs(x = Delta~"Percent Buoyant Weight", y = expression("Adult Ramet Count")) + 
+  labs(x = Delta~"Percent Buoyant Weight", y = expression("# of Genets")) + 
   theme_bw() + theme(legend.position="none") 
 
-S2C_inset <- ggplot(resistrecover_ED_bw, aes(x=percentchange_avgbw2)) +
+S2C_inset <- ggplot(resistrecover_ED_bwS2, aes(x=percentchange_avgbw2)) +
   geom_histogram() +
   labs(x = "BW log", y=expression("")) + 
   theme_bw() + theme(legend.position="none") 
@@ -1104,6 +1146,7 @@ S2D <- ggplot(resistrecover_ED_bw, aes(x=reorder(genet,percentchange_bw2),y=perc
   stat_summary(geom="point",fun="mean",size=2) +
   labs(x = "Genet", y=expression(log*"%"*Delta~Buoyant~Weight)) + 
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  annotate("text", x=c(50),y=c(2), label=c("p < 0.001"),size=3) +
   theme_bw() + theme(axis.text.x=element_text(angle=90,vjust=1,hjust=1),legend.position="none") 
 
 adult_bw_aov <- aov(percentchange_avgbw2~genet, data=resistrecover_ED_bw)
@@ -1130,6 +1173,23 @@ quartz.save("./output/FigS3.pdf", type = "pdf")
 
 
 #####Supp Figure 4#####
+survivor_data_S4A <- survivor_data %>%
+  add_column(new_mort = NA) %>%
+  mutate(new_mort = if_else(grepl("0", rec_mort),"Alive", new_mort)) %>%
+  mutate(new_mort = if_else(grepl("1", rec_mort),"Dead", new_mort)) %>%
+  mutate(as.factor(time_days))
+
+survivor_data_S4A$rec_timepoint <- factor(survivor_data_S5$rec_timepoint, levels = c("r0","r1","r2","r3","r4","r5","r6","r7","r14","r30","r60","r80"))
+survivor_data_S4A$time_days <- factor(survivor_data_S5$time_days, levels = c("0","1","2","3","4","5","6","7","14","30","60","80"))
+survivor_data_S4A$new_mort <- factor(survivor_data_S5$new_mort, levels = c("Dead","Alive"))
+
+S4A <- ggplot(survivor_data_S5,aes(x=time_days,fill=new_mort)) +
+  geom_bar(position="fill",color="black") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values=c("orange4","seagreen4")) +
+  labs(x="Days Post Thermal Stress", y="Number of Ramets (%)") +
+  theme_bw() + theme(legend.title=element_blank(), axis.title=element_text(size=11))
+
 #Recovery/Mortality by Dominant Symbiont spp.
 sym_analysis_rec80 <- matrix(c(19,9,13,5,75,36),ncol=2,nrow=3,dimnames=list(c("C spp.", "Mixed", "D spp."),c("Dead","Alive")),byrow=TRUE)
 fisher.test(sym_analysis_rec80)
@@ -1149,18 +1209,15 @@ pval_CD_rec <- c("p = 1")
 pval_CM_rec <- c("p = 1")
 pval_MD_rec <- c("p = 0.79")
 
-S4 <- ggplot(tmp2, aes(x=Symbio, y=Ramets, fill=Mortality)) +
+S4B <- ggplot(tmp2, aes(x=Symbio, y=Ramets, fill=Mortality)) +
   geom_bar(stat="identity", position="stack", color="black") +
   scale_fill_manual(values=c("orange4","seagreen4")) +
   annotate("text", x=1, y=48, label=c("all n.s."), size=3) +
-  annotate("text", x = 1.48, y= 120, label=c("Recovery Day 80"), size=3) +
-  labs(x = "", y = "Ramet #") + 
+  annotate("text", x = 1.6, y= 120, label=c("Recovery Day 80"), size=3) +
+  labs(x = "Dominant Symbiont Spp.", y = "Ramet #") + 
   scale_x_discrete(labels=c('C', 'Mixed', 'D')) +
-  theme_bw() + theme(axis.title = element_text(size=10),
-                     legend.title = element_blank(),legend.background = element_blank(), 
-                     legend.position = c(.01, .99),legend.justification = c("left", "top"),
-                     legend.key.size = unit(2,"mm"),legend.box.just = "left",legend.margin = margin(6, 6, 6, 6))
+  theme_bw() + theme(axis.title = element_text(size=11), legend.position="none")
 
-quartz(w=4,h=4)
-plot_grid(S4)
+quartz(w=3.5,h=5)
+plot_grid(S4A,S4B, labels = c("A","B"), rel_widths = c(1.2,1), nrow = 2, align="hv", axis="tb")
 quartz.save("./output/FigS4.pdf",type="pdf")
